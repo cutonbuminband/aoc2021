@@ -1,0 +1,17 @@
+#+PROPERTY: header-args:jupyter-python  :session py :kernel python
+#+PROPERTY: header-args    :pandoc t
+
+* Day 1
+
+** Part 1
+#+begin_src jupyter-python
+  import pandas as pd
+  import numpy as np
+  data = pd.read_csv('data/1.csv', header=None)
+  print((data.diff() > 0).sum())
+#+end_src
+
+** Part 2
+#+begin_src jupyter-python
+(data.rolling(3).sum().diff() > 0).sum()
+#+end_src
