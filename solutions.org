@@ -1,6 +1,11 @@
 #+PROPERTY: header-args:jupyter-python  :session py :kernel python
 #+PROPERTY: header-args    :pandoc t
 
+* Imports
+#+begin_src jupyter-python
+import pandas as pd
+#+end_src
+
 * Day 1
 ** Part 1
 As the submarine drops below the surface of the ocean, it automatically performs a sonar sweep of the nearby sea floor. On a small screen, the sonar sweep report (your puzzle input) appears: each line is a measurement of the sea floor depth as the sweep looks further and further away from the submarine.
@@ -9,10 +14,8 @@ The first order of business is to figure out how quickly the depth increases, ju
 
 To do this, count the number of times a depth measurement increases from the previous measurement. (There is no measurement before the first measurement.)
 #+begin_src jupyter-python
-  import pandas as pd
-  import numpy as np
   data = pd.read_csv('data/1.csv', header=None)
-  print((data.diff() > 0).sum())
+  (data.diff() > 0).sum()
 #+end_src
 
 ** Part 2
