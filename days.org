@@ -2,8 +2,12 @@
 #+PROPERTY: header-args    :pandoc t
 
 * Day 1
-
 ** Part 1
+As the submarine drops below the surface of the ocean, it automatically performs a sonar sweep of the nearby sea floor. On a small screen, the sonar sweep report (your puzzle input) appears: each line is a measurement of the sea floor depth as the sweep looks further and further away from the submarine.
+
+The first order of business is to figure out how quickly the depth increases, just so you know what you're dealing with - you never know if the keys will get carried into deeper water by an ocean current or a fish or something.
+
+To do this, count the number of times a depth measurement increases from the previous measurement. (There is no measurement before the first measurement.)
 #+begin_src jupyter-python
   import pandas as pd
   import numpy as np
@@ -12,6 +16,10 @@
 #+end_src
 
 ** Part 2
+
+Considering every single measurement isn't as useful as you expected: there's just too much noise in the data.
+
+Instead, consider sums of a three-measurement sliding window.  Your goal now is to count the number of times the sum of measurements in this sliding window increases from the previous sum. So, compare A with B, then compare B with C, then C with D, and so on. Stop when there aren't enough measurements left to create a new three-measurement sum.
 #+begin_src jupyter-python
 (data.rolling(3).sum().diff() > 0).sum()
 #+end_src
