@@ -66,3 +66,26 @@ Using this new interpretation of the commands, calculate the horizontal position
       state = ops[row.instruction](state, row.amount)
   print(state[1] * state[2])
 #+end_src
+
+* Day 3
+
+** Part 1
+#+begin_src jupyter-python
+df = pd.read_csv('data/3.csv', header=None, dtype='object')[0].apply(lambda x: pd.Series(list(x))).astype('int')
+def binarize(array):
+    return int(''.join(str(x) for x in array.reshape(-1)), 2)
+bits = df.median().to_numpy(dtype=int)
+binarize(bits) * binarize(1 - bits)
+#+end_src
+
+** Part 2
+#+begin_src jupyter-python
+oxygen = df
+co2 = df
+for column in df.columns:
+    oxygen = oxygen[oxygen[column] == int(oxygen[column].median() + 0.5)]
+    if len(co2) > 1:
+        co2 = co2[co2[column] != int(co2[column].median() + 0.5)]
+binarize(oxygen.to_numpy()) * binarize(co2.to_numpy())
+#+end_src
+
