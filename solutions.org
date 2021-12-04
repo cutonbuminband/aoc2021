@@ -4,6 +4,7 @@
 * Imports
 #+begin_src jupyter-python
 import pandas as pd
+import numpy as np
 #+end_src
 
 * Day 1
@@ -115,3 +116,32 @@ for column in df.columns:
 binarize(oxygen.to_numpy()) * binarize(co2.to_numpy())
 #+end_src
 
+* Day 4
+
+** Part 1
+#+begin_src jupyter-python
+  numbers = np.loadtxt('data/4.txt', delimiter=',', max_rows=1)
+  boards = np.loadtxt('data/4.txt', skiprows=2).reshape(-1, 5, 5)
+
+  def winning_array(boards):
+      return ((boards == -1).all(axis=2) | (boards == -1).all(axis=1)).any(axis=1)
+
+  for number in numbers:
+      boards[np.where(boards == number)] = -1
+      if winning_array(boards).any():
+          break
+  index = np.where(winning_array(boards))
+  np.sum(np.ma.array(boards, mask=(boards == -1))[index]) * number
+#+end_src
+
+** Part 2
+#+begin_src jupyter-python
+  for number in numbers:
+      boards[np.where(boards == number)] = -1
+      wins = winning_array(boards)
+      if wins.sum() == len(boards) - 1:
+          index = np.where(~wins)[0]
+      if wins.all():
+          break
+  np.sum(np.ma.array(boards, mask=(boards == -1))[index]) * number
+#+end_src
