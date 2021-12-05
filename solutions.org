@@ -161,3 +161,33 @@ Figure out which board will win last. Once it wins, what would its final score b
           break
   np.sum(np.ma.array(boards, mask=(boards == -1))[index]) * number
 #+end_src
+
+* Day 5
+
+** Part 1
+#+begin_src jupyter-python
+  data = pd.read_csv('data/5.txt', names=['x1', 'middle', 'y2'])
+  data[['y1', 'x2']] = data['middle'].apply(lambda x: pd.Series(x.split('->')).astype('int'))
+  grid = np.zeros((1000, 1000))
+
+  def endpoints_to_line(x1, x2, y1, y2):
+      steps = max(abs(x1 - x2), abs(y1- y2))
+      delta = np.array([np.sign(x2 - x1), np.sign(y2 - y1)])
+      points = [np.array([x1, y1]) + delta * n for n in range(steps + 1)]
+      return tuple(np.array(points).T.tolist())
+
+  on_axis = data[(data['x1'] == data['x2']) | (data['y1'] == data['y2'])]
+  for row in on_axis.itertuples():
+      grid[endpoints_to_line(row.x1, row.x2, row.y1, row.y2)] += 1
+
+  (grid > 1).sum()
+#+end_src
+
+** Part 2
+#+begin_src jupyter-python
+  skewed = data[(data['x1'] != data['x2']) & (data['y1'] != data['y2'])]
+  for row in skewed.itertuples():
+      grid[endpoints_to_line(row.x1, row.x2, row.y1, row.y2)] += 1
+
+  (grid > 1).sum()
+#+end_src
