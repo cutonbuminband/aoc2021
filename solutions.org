@@ -15,7 +15,7 @@ The first order of business is to figure out how quickly the depth increases, ju
 
 To do this, count the number of times a depth measurement increases from the previous measurement. (There is no measurement before the first measurement.)
 #+begin_src jupyter-python
-  data = pd.read_csv('data/1.csv', header=None)
+  data = pd.read_csv('data/1.csv', names=['depth'])
   (data.diff() > 0).sum()
 #+end_src
 
@@ -40,7 +40,7 @@ It seems like the submarine can take a series of commands like forward 1, down 2
 
 Calculate the horizontal position and depth you would have after following the planned course. What do you get if you multiply your final horizontal position by your final depth?
 #+begin_src jupyter-python
-  data = pd.read_csv('data/2.csv', header=None, sep=' ', names=['instruction', 'amount'])
+  data = pd.read_csv('data/2.csv', sep=' ', names=['instruction', 'amount'])
   totals = data.groupby('instruction').sum()
   totals.loc['forward'] * (totals.loc['down'] - totals.loc['up'])
 #+end_src
@@ -82,7 +82,7 @@ Each bit in the gamma rate can be determined by finding the most common bit in t
 Use the binary numbers in your diagnostic report to calculate the gamma rate and epsilon rate, then multiply them together. What is the power consumption of the submarine? (Be sure to represent your answer in decimal, not binary.)
 
 #+begin_src jupyter-python
-df = pd.read_csv('data/3.csv', header=None, dtype='object')[0].apply(lambda x: pd.Series(list(x))).astype('int')
+df = pd.read_fwf('data/3.csv', widths=[1]*12, header=None)
 def binarize(array):
     return int(''.join(str(x) for x in array.reshape(-1)), 2)
 bits = df.median().to_numpy(dtype=int)
