@@ -213,3 +213,25 @@ Consider all of the lines. At how many points do at least two lines overlap?
 
   (grid > 1).sum()
 #+end_src
+
+* Day 6
+
+** Part 1
+#+begin_src jupyter-python
+  values, counts = np.unique(np.loadtxt('data/6.txt', delimiter=',', dtype=int), return_counts=True)
+  population = np.zeros(9)
+  population[values] = counts
+  def update(array):
+      return np.roll(array, -1) + np.array([0, 0, 0, 0, 0, 0, array[0], 0, 0])
+
+  for i in range(80):
+      population = update(population)
+  population.sum()
+#+end_src
+
+** Part 2
+#+begin_src jupyter-python
+  for i in range(256 - 80):
+      population = update(population)
+  population.sum()
+#+end_src
