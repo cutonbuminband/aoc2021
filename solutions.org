@@ -235,15 +235,11 @@ Each day, a 0 becomes a 6 and adds a new 8 to the end of the list, while each ot
 
 Find a way to simulate lanternfish. How many lanternfish would there be after 80 days?
 #+begin_src jupyter-python
-  values, counts = np.unique(np.loadtxt('data/6.txt', delimiter=',', dtype=int), return_counts=True)
-  population = np.zeros(9)
-  population[values] = counts
-  def update(array):
-      return np.roll(array, -1) + np.array([0, 0, 0, 0, 0, 0, array[0], 0, 0])
-
-  for i in range(80):
-      population = update(population)
-  population.sum()
+  data = np.loadtxt('data/6.txt', delimiter=',', dtype=int)
+  population, _ = np.histogram(data, range(10))
+  transition_matrix = np.roll(np.eye(9, dtype=int), 1, axis=1)
+  transition_matrix[6, 0] = 1
+  (np.linalg.matrix_power(transition_matrix, 80) @ population).sum()
 #+end_src
 
 ** Part 2
@@ -251,7 +247,5 @@ Suppose the lanternfish live forever and have unlimited food and space. Would th
 
 How many lanternfish would there be after 256 days?
 #+begin_src jupyter-python
-  for i in range(256 - 80):
-      population = update(population)
-  population.sum()
+    (np.linalg.matrix_power(transition_matrix, 256) @ population).sum()
 #+end_src
