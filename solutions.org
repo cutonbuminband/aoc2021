@@ -215,3 +215,18 @@ How many lanternfish would there be after 256 days?
 #+begin_src jupyter-python
     (np.linalg.matrix_power(transition_matrix, 256) @ population).sum()
 #+end_src
+* Day 7
+** Part 1
+#+begin_src jupyter-python
+  data = np.loadtxt('data/7.csv', delimiter=',', dtype=int)
+  np.abs(data - np.median(data)).sum()
+#+end_src
+** Part 2
+#+begin_src jupyter-python
+  def cost(position):
+      delta = np.abs(data - position)
+      return ((delta) * (delta + 1) / 2).sum()
+
+  options = [cost(int(data.mean())), cost(int(data.mean() + 0.5))]
+  min(options)
+#+end_src
