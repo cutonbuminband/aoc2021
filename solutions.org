@@ -248,3 +248,76 @@ Determine the horizontal position that the crabs can align to using the least fu
   options = [cost(int(data.mean())), cost(int(data.mean() + 0.5))]
   min(options)
 #+end_src
+* Day 8
+** Part 1
+#+begin_src jupyter-python
+  with open('data/8.txt', encoding='utf8') as f:
+      data = f.readlines()
+  segments = [line.split("|")[1].strip().split() for line in data]
+  mylen = np.vectorize(len)
+  np.isin(mylen(segments), [2, 3, 4, 7]).sum()
+#+end_src
+
+** Part 2
+This is an obvious task for constraint programming. It feels a bit like cheating, so I'll see if I can come up with a home-grown approach at a later stage. I'll start by describing the segment pattern of each digit. I'm deliberately using numbers for the segment positions and letters for the segment names so that I don't get confused.
+
+
+The solution below works, but it's fairly slow.
+#+begin_src jupyter-python
+  import constraints
+  digits = {
+      (1,2,3,5,6,7):   0,
+      (3,6):           1,
+      (1,3,4,5,7):     2,
+      (1,3,4,6,7):     3,
+      (2,3,4,6):       4,
+      (1,2,4,6,7):     5,
+      (1,2,4,5,6,7):   6,
+      (1,3,6):         7,
+      (1,2,3,4,5,6,7): 8,
+      (1,2,3,4,6,7):   9,
+  }
+
+  def generate_constraint(display_string):
+      segments = [candidate for candidate in digits.keys() if len(candidate) == len(display_string)]
+      def inner(a, b, c, d, e, f, g):
+          scope = locals()
+          variables = [eval(x, scope) for x in display_string]
+          for value in segments:
+              if set(variables) == set(value):
+                  return True
+      return inner
+  total = 0
+  for line in data:
+      clues = line.replace(" | ", " ").split()
+      output = line.split(" | ")[1].split()
+      problem = constraint.Problem()
+      problem.addVariables("abcdefg", range(1, 8))
+      problem.addConstraint(constraint.AllDifferentConstraint())
+      for item in clues:
+          problem.addConstraint(generate_constraint(item), 'abcdefg')
+      solution = problem.getSolutions()[0]
+      total += int(''.join(str(digits[tuple(sorted(solution[x] for x in number))]) for number in output))
+
+  total
+#+end_src
+
+We can be a bit cleverer than this by exploiting the structure in our data.
+
+We know that every digit occurs before the pipe for every row in our input.
+
+ Using that, we can immediately identify segment 1, segments {36} segments {24} and segments {57}.
+
+ The three five segment numbers let us disambiguate {147}, {25}, {36}. 147 occur in every group, 25 in only 1 and 36 in two
+
+ The three six segment numbers let us disambiguate {1267}, {345}.
+
+ 1 is the segment present in 3 but not in 2.
+ 2 is the segment present in 4, not present in 2, and present in every 6
+ 3 is the segment present in 2 which is not present in every 6
+ 4 is the segment present in 4, not present in 2, and not present in every 6
+ 5 is the segment not present in 4 which only occurs once in 5
+ 6 is the segment which is present in 2 and is present in every 6
+ 7 is the segment present in every 5, not present in every 6, not present in 4
+
+ It's not super elegant, and I kind of prefer just using the generalised constraints programming.
