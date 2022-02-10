@@ -362,3 +362,47 @@ We know that every digit occurs before the pipe for every row in our input.
   print(np.product(sorted(sizes)[-3:]))
 #+end_src
 
+* Day 10
+** Part 1
+
+#+begin_src jupyter-python
+  with open('data/10.txt', encoding='utf8') as f:
+      lines = f.readlines()
+
+  pairs = ["[]", "()", "<>", "{}"]
+
+  def normalize(string):
+      old_string = string
+      while True:
+          for pair in pairs:
+              string = string.replace(pair, "")
+          if string == old_string:
+              break
+          old_string = string
+      return string
+
+  scores = {")": 3, "]": 57, "}": 1197, ">": 25137}
+  total = 0
+  for line in lines:
+      normalized = normalize(line)
+      indices = np.array([normalized.find(pair[1]) for pair in pairs])
+      if (indices == -1).all():
+          continue
+      index = min(index for index in indices if index != -1)
+      total += scores[normalized[index]]
+  print(total)
+#+end_src
+
+
+** Part 2
+#+begin_src jupyter-python
+  delimiters = " ([{<"
+  scores = []
+  for line in lines:
+      normalized = normalize(line.strip())
+      indices = np.array([normalized.find(pair[1]) for pair in pairs])
+      if (indices != -1).any():
+          continue
+      scores.append(functools.reduce(lambda x, y: 5 * x + delimiters.find(y), normalized[::-1], 0))
+  int(np.median(scores))
+#+end_src
