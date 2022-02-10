@@ -321,3 +321,44 @@ We know that every digit occurs before the pipe for every row in our input.
  7 is the segment present in every 5, not present in every 6, not present in 4
 
  It's not super elegant, and I kind of prefer just using the generalised constraints programming.
+
+* Day 9
+** Part 1
+#+begin_src jupyter-python
+  data = pd.read_fwf('data/9.txt', widths=[1]*100, header=None).to_numpy()
+  data = np.pad(data, pad_width=1, mode='constant', constant_values=9)
+  mask = ((data < np.roll(data, -1, axis=0))
+          & (data < np.roll(data, 1, axis=0))
+          & (data < np.roll(data, -1))
+          & (data < np.roll(data, 1)))
+  np.ma.array(data + 1, mask=~mask).sum()
+#+end_src
+
+** Part 2
+#+begin_src jupyter-python
+  def up(x, y): return x, y + 1
+  def down(x, y): return x, y - 1
+  def left(x, y): return x - 1, y
+  def right(x, y): return x + 1, y
+  moves = [up, down, left, right]
+
+  def basin(x ,y):
+      visited = np.zeros(data.shape, dtype=bool)
+      neighbors = [(x, y)]
+      result = 0
+      while neighbors:
+          x, y = neighbors.pop()
+          if data[x, y] == 9 or visited[x, y]:
+              continue
+          result += 1
+          visited[x, y] = True
+          for move in moves:
+              new_x, new_y = move(x, y)
+              if not visited[new_x, new_y]:
+                  neighbors.append((new_x, new_y))
+      return result
+  low_points = zip(*np.where(mask))
+  sizes = list(map(lambda x: basin(*x), low_points))
+  print(np.product(sorted(sizes)[-3:]))
+#+end_src
+
