@@ -453,3 +453,59 @@ We know that every digit occurs before the pipe for every row in our input.
 #+end_src
 
 
+* Day 12
+** Part 1
+#+begin_src jupyter-python
+  from collections import defaultdict
+
+  def flatten(mylist):
+      return (element for sublist in mylist for element in sublist)
+
+  def edges_to_tree(edges, repeat_visits = 0):
+      tree = defaultdict(set)
+      for e1, e2 in edges:
+          tree[e1].add(e2)
+          tree[e2].add(e1)
+      return tree
+
+  def remove_node(tree, node):
+      tree = tree.copy()
+      neighbors = tree[node]
+      del tree[node]
+      for neighbor in neighbors:
+          tree[neighbor] = tree[neighbor] - set([node])
+      return tree
+
+  def paths(tree, node, end):
+      if node == end:
+          return [(end,)]
+      if not tree[node]:
+          return []
+      new_tree = tree if node == node.upper() else remove_node(tree, node)
+      return [(node,) + x for x in flatten([paths(new_tree, neighbor, end) for neighbor in tree[node]])]
+
+
+  with open("data/12.txt", encoding="utf8") as f:
+      data = f.readlines()
+  edges = [line.strip().split("-") for line in data]
+  tree = edges_to_tree(edges)
+  len(paths(tree, "start", "end"))
+
+#+end_src
+** Part 2
+#+begin_src jupyter-python
+  def paths(tree):
+      def inner(subtree, node, end, state):
+          if node == end:
+              return [(end,)]
+          if not subtree[node]:
+              return []
+          new_tree = subtree if node == node.upper() else remove_node(subtree, node)
+          tail = [inner(new_tree, neighbor, end, state) for neighbor in subtree[node]]
+          if state == 1 and node != "start":
+              tail += [inner(subtree, neighbor, end, 0) for neighbor in subtree[node]]
+          return [(node,) + x for x in flatten(tail)]
+
+      return inner(tree, "start", "end", 1)
+  len(set(paths(tree)))
+#+end_src
