@@ -509,3 +509,37 @@ We know that every digit occurs before the pipe for every row in our input.
       return inner(tree, "start", "end", 1)
   len(set(paths(tree)))
 #+end_src
+* Day 13
+** Part 1
+
+#+begin_src jupyter-python
+  start = np.loadtxt('data/13.txt', delimiter=',', dtype=int)
+  arr = np.zeros(start.max(axis=0) + 1, dtype=bool)
+  arr[start[:, 0], start[:, 1]] = 1
+
+  top  = arr[:655]
+  bottom = arr[656:]
+  bottom = np.pad(bottom, ((0, top.shape[0] - bottom.shape[0]), (0, 0)))
+  print((top | np.flip(bottom, 0)).sum())
+#+end_src
+
+** Part 2
+#+begin_src jupyter-python
+  replacement = np.vectorize(lambda x: "#" if x else " ")
+  instructions = ["x=655", "y=447", "x=327", "y=223", "x=163", "y=111", "x=81", "y=55", "x=40", "y=27", "y=13", "y=6"]
+  for instruction in instructions:
+      direction, position = instruction.split("=")
+      position = int(position)
+      arr = arr.T if direction == "y" else arr
+      top = arr[:position]
+      bottom = arr[position + 1:]
+      if top.shape[0] < bottom.shape[0]:
+          top = np.pad(top, ((bottom.shape[0] - top.shape[0], 0), (0, 0)))
+      else:
+          bottom = np.pad(bottom, ((0, top.shape[0] - bottom.shape[0]), (0, 0)))
+      arr = np.flip(bottom, 0) | top
+      arr = arr.T if direction == "y" else arr
+  for row in replacement(arr.T):
+      print(''.join(row))
+
+#+end_src
