@@ -540,3 +540,47 @@ We know that every digit occurs before the pipe for every row in our input.
       print(''.join(row))
 
 #+end_src
+
+* Day 14: Extended Polymerization
+
+Here's another puzzle that seems tailor made for a transition matrix based approach. We are given an initial state, and a set of rules for producing the next state from the current state. The rules are all phrased in terms of pairs, so we should work in the basis of pairs of elements.
+
+A rule like CH -> B should be interpreted as state "CH" produces states "CB" and "BH" in the next generation.
+
+** Part 1
+#+begin_src jupyter-python
+  state_string = "VCOPVNKPFOOVPVSBKCOF"
+  with open('data/14.txt', encoding='utf8') as f:
+      data = f.readlines()
+  transition_elements = ''.join(line.strip().replace(" -> ", "") for line in data)
+  elements = sorted(set(state_string + transition_elements))
+  n = len(elements)
+  def encode(pair):
+      return elements.index(pair[0]) * n + elements.index(pair[1])
+  initial_pairs = [encode(state_string[i:i+2]) for i in range(len(state_string) - 1)]
+  initial_state = np.zeros(n ** 2, dtype=np.int64)
+  for pair in initial_pairs:
+      initial_state[pair] += 1
+  transition_matrix = np.zeros((n**2, n**2), dtype=np.int64)
+  for line in data:
+      source, target = line.strip().split(" -> ")
+      transition_matrix[encode(source), encode(source[0] + target)] = 1
+      transition_matrix[encode(source), encode(target + source[1])] = 1
+
+  def count(state):
+      result = defaultdict(int)
+      result[state_string[0]] += 1
+      result[state_string[-1]] += 1
+      for index, number in enumerate(state):
+          result[elements[int(index % n)]] += number
+          result[elements[int(index // n)]] += number
+      return {k : int(v / 2) for k, v in result.items()}
+
+  totals = count(initial_state.T @ (np.linalg.matrix_power(transition_matrix, 10)))
+  pd.Series(totals).max() - pd.Series(totals).min()
+#+end_src
+** Part 2
+#+begin_src jupyter-python
+  totals = count(initial_state.T @ (np.linalg.matrix_power(transition_matrix, 40)))
+  pd.Series(totals).max() - pd.Series(totals).min()
+#+end_src
