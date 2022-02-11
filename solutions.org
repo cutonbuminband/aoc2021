@@ -406,3 +406,50 @@ We know that every digit occurs before the pipe for every row in our input.
       scores.append(functools.reduce(lambda x, y: 5 * x + delimiters.find(y), normalized[::-1], 0))
   int(np.median(scores))
 #+end_src
+
+* Day 11
+** Part 1
+#+begin_src jupyter-python
+    def find_neighbors(x, y):
+        return ((x - 1, x - 1, x - 1, x, x, x + 1, x + 1, x + 1),
+                (y - 1, y, y + 1, y - 1, y + 1, y - 1, y, y + 1))
+
+    def step(board):
+      board += 1
+      flashed = np.zeros(board.shape, dtype=bool)
+      indices = list(zip(*np.where(board > 9)))
+      while indices:
+          x, y = indices.pop()
+          if flashed[x, y]:
+              continue
+          flashed[x, y] = True
+          neighbors = find_neighbors(x, y)
+          board[neighbors] += 1
+          for neighbor in zip(*neighbors):
+              if board[neighbor] > 9:
+                  indices.append(neighbor)
+      board[np.where(flashed)] = 0
+      return flashed.sum()
+
+    result = 0
+    data = pd.read_fwf('data/11.txt', widths=[1]*10, header=None).to_numpy(dtype=float)
+    data = np.pad(data, pad_width=1, mode='constant', constant_values=-np.inf)
+    arr = data.copy()
+    for i in range(100):
+        result += step(arr)
+    print(result)
+
+#+end_src
+
+** Part 2
+#+begin_src jupyter-python
+  count = 0
+  arr = data.copy()
+  while arr[1:-1, 1:-1].sum() > 0:
+      step(arr)
+      count += 1
+  count
+
+#+end_src
+
+
