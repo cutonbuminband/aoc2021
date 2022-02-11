@@ -584,3 +584,52 @@ A rule like CH -> B should be interpreted as state "CH" produces states "CB" and
   totals = count(initial_state.T @ (np.linalg.matrix_power(transition_matrix, 40)))
   pd.Series(totals).max() - pd.Series(totals).min()
 #+end_src
+* Day 15: Chiton
+This is a shortest path search, which I really don't remember how to do. Here goes nothing
+#+begin_src jupyter-python
+  data = pd.read_fwf('data/15.txt', widths=[1]*100, header=None).to_numpy(dtype=float)
+  data = np.pad(data, 1, constant_values = np.inf)
+  auxiliary = np.zeros(data.shape)
+  start = (1, 1)
+  def get_neighbors(x, y):
+      coords = [(x-1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
+      return[[data[coord], coord] for coord in coords]
+  neighbors = sorted(get_neighbors(*start), key=lambda x: x[0])
+  while neighbors:
+      cost, (x, y) = neighbors.pop(0)
+      if auxiliary[x, y]:
+          continue
+      auxiliary[x, y] = cost
+      new_neighbors = [[cell[0] + cost, cell[1]] for cell in get_neighbors(x, y)]
+      neighbors = sorted(neighbors + new_neighbors, key = lambda x: x[0])
+      neighbors = [x for x in neighbors if x[0] < np.inf]
+      if x == -2 and y == -2:
+          break
+  auxiliary[-2, -2]
+#+end_src
+This worked, but is almost too slow for part 2, which runs in about 60 s. Oh well
+#+begin_src jupyter-python
+  data = pd.read_fwf('data/15.txt', widths=[1]*100, header=None).to_numpy(dtype=float)
+  x, y = data.shape
+  arr = np.zeros([5  * x, 5 * y])
+  for i in range(5):
+      for j in range(5):
+          arr[i * x: (i + 1) * x, j * y : (j + 1) * y] = data + i + j
+  def get_neighbors(x, y):
+      coords = [(x-1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
+      return[[arr[coord], coord] for coord in coords]
+  arr = ((arr - 1) % 9) + 1
+  arr = np.pad(arr, 1, constant_values = np.inf)
+  start = (1, 1)
+  neighbors = sorted(get_neighbors(*start), key=lambda x: x[0])
+  auxiliary = np.zeros(arr.shape)
+  while neighbors:
+      cost, (x, y) = neighbors.pop(0)
+      if auxiliary[x, y]:
+          continue
+      auxiliary[x, y] = cost
+      new_neighbors = [[cell[0] + cost, cell[1]] for cell in get_neighbors(x, y)]
+      neighbors = sorted(neighbors + new_neighbors, key = lambda x: x[0])
+      neighbors = [x for x in neighbors if x[0] < np.inf]
+  auxiliary[-2, -2]
+#+end_src
