@@ -5,6 +5,7 @@
 #+begin_src jupyter-python
 import pandas as pd
 import numpy as np
+from collections import defaultdict
 #+end_src
 
 * Day 1: Sonar Sweep
@@ -453,8 +454,6 @@ We know that every digit occurs before the pipe for every row in our input.
 * Day 12: Passage Pathing
 ** Part 1
 #+begin_src jupyter-python
-  from collections import defaultdict
-
   def flatten(mylist):
       return (element for sublist in mylist for element in sublist)
 
@@ -717,4 +716,47 @@ For part 2, we have to completely ignore the version number and actually do some
                    lambda x: x[0] > x[1], lambda x: x[0] < x[1], lambda x: x[0] == x[1]]
       return operators[type_id](operands), offset
   print(evaluate_one_packet(bits)[0])
+#+end_src
+* Day 17: Trick Shot
+** Part 1
+First pen and paper solution for this year.
+
+Things to note:
+
+1. x and y are completely decoupled
+2. There exists a time velocity x_0 such that the probe will be within the target area for all t > some t_i
+3. As long as the up velocity is greater than this, then by the time the probe reaches the baseline in y, it will have stopped in x.
+4. The arc up and down is symmetric; a probe launched from y=0 at t=0 with v=v0 will hit y=0 at t=2v0 + 1
+5. This probe will have velocity (-v0 - 1) at that point
+6. If  -v0 - 1 < bottom of target, then the probe will entirely miss the target in the next step
+7. The greater v0 is, the higher the probe will go; ymax = ½ v0 (v0 + 1)
+8. So we just set -v0 - 1 = -126 => v0 = 125
+9. So ymax = 125 * 126 / 2 = 7875.
+10. ∎
+
+** Part 2
+
+#+begin_src jupyter-python
+  xmin, xmax =  217, 240
+  ymin, ymax = -126, -69
+  parabola = lambda v, t: (t * v - int(t * (t - 1) / 2))
+
+  time_map = defaultdict(list)
+  for vy in range(ymin, -ymin):
+      for time in [t for t in range(1, 3 - 2*ymin) if parabola(vy, t) in range(ymin, ymax + 1)]:
+          time_map[time].append(vy)
+
+  def x_times(vx):
+      times = [t for t in range(1, vx) if parabola(vx, t) in range(xmin, xmax + 1)]
+      if vx - 1 in times:
+          times += list(range(max(times) + 1, max(time_map.keys()) + 1))
+      return times
+
+  result = []
+  for vx in range(int(0.5 + np.sqrt(0.25 + 2 * xmin)), xmax + 1):
+      times = x_times(vx)
+      for time in times:
+          for vy in time_map[time]:
+              result.append((vx, vy))
+  print(len(set(result)))
 #+end_src
