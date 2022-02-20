@@ -760,3 +760,107 @@ Things to note:
               result.append((vx, vy))
   print(len(set(result)))
 #+end_src
+
+* Day 18: Snailfish
+** Part 1
+#+begin_src jupyter-python
+
+  def to_node(thing, depth):
+      if isinstance(thing, int):
+          return thing
+      elif isinstance(thing, Pair):
+          for node in thing.traverse():
+              node.depth += 1
+          return thing
+      else:
+          return Pair(thing[0], thing[1], depth+1)
+
+  class Pair:
+      def __init__(self, left, right, depth=0):
+          self.depth = depth
+          self.left = to_node(left, depth)
+          self.right = to_node(right, depth)
+
+      def leftmost(self):
+          return self if isinstance(self.left, int) else self.left.leftmost()
+
+      def rightmost(self):
+          return self if isinstance(self.right, int) else self.right.rightmost()
+
+      def sum(self):
+          left = self.left if isinstance(self.left, int) else self.left.sum()
+          right = self.right if isinstance(self.right, int) else self.right.sum()
+          return 3*left + 2*right
+
+      def traverse(self):
+          left = [] if isinstance(self.left, int) else self.left.traverse()
+          right = [] if isinstance(self.right, int) else self.right.traverse()
+          return left + [self] + right
+
+      def reduce(self):
+          while True:
+              altered = False
+              altered = self.explode()
+              if not altered:
+                  altered = self.split()
+                  if not altered:
+                      return self
+
+      def split(self):
+          for node in self.traverse():
+              for d in ['left', 'right']:
+                  val  = getattr(node, d)
+                  if isinstance(val, int) and val >= 10:
+                      setattr(node, d, Pair(val // 2, val // 2 + val % 2, node.depth + 1))
+                      return True
+          return False
+
+      def explode(self):
+          traversal = self.traverse()
+          for idx, node in enumerate(traversal):
+              if node.depth == 4:
+                  if idx == len(traversal) - 1:
+                      parent = traversal[idx - 1]
+                      direction = "right"
+                  elif traversal[idx + 1].left == node:
+                      parent = traversal[idx + 1]
+                      direction = "left"
+                  else:
+                      parent = traversal[idx - 1]
+                      direction = "right"
+                  setattr(parent, direction, 0)
+                  if idx != 0:
+                      if isinstance(traversal[idx - 1].left, int):
+                          traversal[idx - 1].left += node.left
+                      else:
+                          left_neighbor = traversal[idx -1].left.rightmost()
+                          left_neighbor.right += node.left
+
+                  if idx != len(traversal) - 1:
+                      if isinstance(traversal[idx + 1].right, int):
+                          traversal[idx + 1].right += node.right
+                      else:
+                          right_neighbor = traversal[idx + 1].right.leftmost()
+                          right_neighbor.left += node.right
+                  return True
+          return False
+
+  snumbers = []
+  with open('data/18.txt') as f:
+      for line in f:
+          snumbers.append(eval(line.strip()))
+  result = Pair(*snumbers[0])
+  for snumber in snumbers[1:]:
+      result = Pair(result, Pair(*snumber)).reduce()
+  print(result.sum())
+#+end_src
+
+** Part 2
+#+begin_src jupyter-python
+  import itertools
+  maxval = 0
+  for left, right in itertools.permutations(snumbers, 2):
+      total = (Pair(left, right).reduce()).sum()
+      maxval = total if total > maxval else maxval
+  maxval
+#+end_src
